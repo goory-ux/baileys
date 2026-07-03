@@ -1128,6 +1128,18 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 
 				break
 			case 'link_code_companion_reg':
+				if (!authState.creds.pairingCode) {
+					logger.warn({ node }, 'passkey continuation requested but QR passkey flow is not supported')
+					ev.emit('connection.update', {
+						passkey: {
+							state: 'unsupported',
+							method: 'qr',
+							reason: 'passkey_continuation_required'
+						}
+					})
+					break
+				}
+
 				const linkCodeCompanionReg = getBinaryNodeChild(node, 'link_code_companion_reg')
 				const ref = toRequiredBuffer(getBinaryNodeChildBuffer(linkCodeCompanionReg, 'link_code_pairing_ref'))
 				const primaryIdentityPublicKey = toRequiredBuffer(

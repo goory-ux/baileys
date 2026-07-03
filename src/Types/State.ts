@@ -28,6 +28,8 @@ export type ConnectionState = {
 	isNewLogin?: boolean
 	/** the current QR code */
 	qr?: string
+	/** account/device linking requires the WhatsApp passkey continuation flow */
+	passkey?: LinkDevicePasskeyState
 	/** has the device received all pending notifications while it was offline */
 	receivedPendingNotifications?: boolean
 	/** legacy connection options */
@@ -51,6 +53,12 @@ export type ReachoutTimelockState = {
 	isActive?: boolean
 	timeEnforcementEnds?: Date
 	enforcementType?: ReachoutTimelockEnforcementType
+}
+
+export type LinkDevicePasskeyState = {
+	state: 'required' | 'unsupported'
+	method?: 'qr' | 'pairing-code' | 'unknown'
+	reason?: string
 }
 
 export enum ReachoutTimelockEnforcementType {

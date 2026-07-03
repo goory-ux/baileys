@@ -909,6 +909,42 @@ export const makeSocket = (config: SocketConfig) => {
 
 		genPairQR()
 	})
+
+	const emitUnsupportedPasskeyFlow = async (stanza: BinaryNode, reason: string) => {
+		logger.warn({ stanza }, 'passkey continuation requested but Shortcake passkey flow is not supported')
+		if (stanza.attrs.id) {
+			await sendNode({
+				tag: 'iq',
+				attrs: {
+					to: S_WHATSAPP_NET,
+					type: 'error',
+					id: stanza.attrs.id
+				},
+				content: [
+					{
+						tag: 'error',
+						attrs: {
+							code: '501',
+							text: 'feature-not-implemented'
+						}
+					}
+				]
+			})
+		}
+
+		ev.emit('connection.update', {
+			passkey: {
+				state: 'unsupported',
+				method: 'qr',
+				reason
+			}
+		})
+	}
+
+	ws.on('CB:iq,,passkey', stanza => void emitUnsupportedPasskeyFlow(stanza, 'passkey_iq'))
+	ws.on('CB:iq,,passkey-prologue', stanza => void emitUnsupportedPasskeyFlow(stanza, 'passkey_prologue_iq'))
+	ws.on('CB:iq,,shortcake', stanza => void emitUnsupportedPasskeyFlow(stanza, 'shortcake_iq'))
+
 	// device paired for the first time
 	// if device pairs successfully, the server asks to restart the connection
 	ws.on('CB:iq,,pair-success', async (stanza: BinaryNode) => {
